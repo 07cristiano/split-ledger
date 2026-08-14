@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}SplitLedger{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/groups">SplitLedger</a>
+      {% if current_user %}
+      <div class="header-user">
+        <span>Signed in as {{ current_user['display_name'] }}</span>
+        <form action="/logout" method="post"><button class="link-button" type="submit">Sign out</button></form>
+      </div>
+      {% endif %}
+    </header>
+    <main class="page-shell">{% block content %}{% endblock %}</main>
+  </body>
+</html>

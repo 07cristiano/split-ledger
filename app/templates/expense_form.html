@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Add expense · SplitLedger{% endblock %}
+{% block content %}
+<section class="form-page"><a class="back-link" href="/groups/{{ group['id'] }}">← Back to {{ group['name'] }}</a><div class="panel form-panel">
+  <p class="eyebrow">MANUAL ENTRY</p><h1>Add a shared expense</h1><p class="muted">The server validates membership and calculates an exact equal split in paise.</p>
+  {% if error %}<p class="alert">{{ error }}</p>{% endif %}
+  <form action="/groups/{{ group['id'] }}/expenses/new" method="post" class="stack">
+    <label>Description <input name="description" maxlength="120" value="{{ submitted.get('description', '') if submitted else '' }}" placeholder="Dinner at Olive" required></label>
+    <div class="form-grid"><label>Amount (₹) <input name="amount" type="number" inputmode="decimal" min="0.01" max="10000000.00" step="0.01" value="{{ submitted.get('amount', '') if submitted else '' }}" placeholder="1200.00" required></label>
+    <label>Date <input type="date" name="expense_date" value="{{ submitted.get('expense_date', today) if submitted else today }}" max="{{ today }}" required></label></div>
+    <label>Paid by <select name="payer_id" required>{% for member in members %}<option value="{{ member['id'] }}" {% if submitted and submitted.get('payer_id')|string == member['id']|string %}selected{% endif %}>{{ member['display_name'] }}</option>{% endfor %}</select></label>
+    <fieldset><legend>Split equally among</legend>{% for member in members %}<label class="checkbox"><input type="checkbox" name="participant_ids" value="{{ member['id'] }}" {% if not submitted or member['id']|string in submitted.getlist('participant_ids') %}checked{% endif %}> {{ member['display_name'] }}</label>{% endfor %}</fieldset>
+    <button type="submit">Review by saving confirmed expense</button>
+  </form>
+</div></section>
+{% endblock %}

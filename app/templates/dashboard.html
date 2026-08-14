@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ group['name'] }} · SplitLedger{% endblock %}
+{% block content %}
+<section class="page-heading with-actions">
+  <div><p class="eyebrow">GROUP LEDGER</p><h1>{{ group['name'] }}</h1><p class="muted">{{ members|length }} members · balances are calculated from confirmed expenses only.</p></div>
+  <div class="actions"><a class="button-link secondary" href="/groups">All groups</a><a class="button-link secondary" href="/groups/{{ group['id'] }}/expense-drafts/new">Draft from text</a><a class="button-link" href="/groups/{{ group['id'] }}/expenses/new">Add expense</a></div>
+</section>
+{% if error %}<p class="alert">{{ error }}</p>{% endif %}
+<div class="dashboard-grid">
+  <section class="panel"><h2>Balances</h2><div class="balance-list">
+    {% for balance in balances %}
+    <div class="balance-row"><span>{{ balance['display_name'] }}</span><strong class="{% if balance['balance_paise'] > 0 %}positive{% elif balance['balance_paise'] < 0 %}negative{% endif %}">{{ balance['balance_paise']|money }}</strong></div>
+    {% endfor %}
+  </div></section>
+  <section class="panel"><h2>Settle up</h2>
+    {% if transfers %}<ol class="transfer-list">{% for transfer in transfers %}<li><strong>{{ transfer['from_name'] }}</strong> pays <strong>{{ transfer['to_name'] }}</strong> <span>{{ transfer['amount_paise']|money }}</span></li>{% endfor %}</ol>
+    {% else %}<p class="muted">Everyone is settled.</p>{% endif %}
+    <p class="caption">A greedy plan that settles every net balance; it does not claim globally minimum transfer count.</p>
+  </section>
+</div>
+<section class="panel history-panel"><div class="section-header"><h2>Expense history</h2><a href="/groups/{{ group['id'] }}/expenses/new">Add manual expense</a></div>
+  {% if expenses %}<div class="expense-table"><div class="expense-head"><span>Description</span><span>Paid by</span><span>Amount</span><span>Date</span></div>{% for expense in expenses %}<div class="expense-row"><span><strong>{{ expense['description'] }}</strong><small>{{ expense['input_mode']|replace('_', ' ') }}</small></span><span>{{ expense['payer_name'] }}</span><span>{{ expense['amount_paise']|money }}</span><span>{{ expense['expense_date'] }}</span></div>{% endfor %}</div>
+  {% else %}<p class="muted">No confirmed expenses yet. Add one manually to start the ledger.</p>{% endif %}
+</section>
+{% endblock %}

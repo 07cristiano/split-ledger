@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Sign in · SplitLedger{% endblock %}
+{% block content %}
+<section class="auth-card">
+  <p class="eyebrow">LOCAL DEMO</p>
+  <h1>Settle shared expenses clearly.</h1>
+  <p class="muted">Use a seeded member and the demo password <code>{{ demo_password }}</code>. No personal information is required.</p>
+  {% if error %}<p class="alert">{{ error }}</p>{% endif %}
+  <form action="/login" method="post" class="stack">
+    <label>Member
+      <select name="display_name" required>
+        {% for user in users %}<option value="{{ user['display_name'] }}">{{ user['display_name'] }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Password <input type="password" name="password" value="{{ demo_password }}" required></label>
+    <button type="submit">Open demo workspace</button>
+  </form>
+</section>
+{% endblock %}

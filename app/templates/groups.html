@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Your groups · SplitLedger{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div><p class="eyebrow">YOUR WORKSPACE</p><h1>Expense groups</h1></div>
+  <p class="muted">Only members can view a group's records.</p>
+</section>
+{% if error %}<p class="alert">{{ error }}</p>{% endif %}
+<div class="two-column">
+  <section class="panel">
+    <h2>Your groups</h2>
+    {% if groups %}
+      <div class="card-list">
+      {% for group in groups %}
+        <a class="group-card" href="/groups/{{ group['id'] }}"><strong>{{ group['name'] }}</strong><span>{{ group['member_count'] }} members</span></a>
+      {% endfor %}
+      </div>
+    {% else %}<p class="muted">Create your first group.</p>{% endif %}
+  </section>
+  <section class="panel">
+    <h2>Create a demo group</h2>
+    <form action="/groups" method="post" class="stack">
+      <label>Name <input name="name" maxlength="80" placeholder="Goa trip" required></label>
+      <fieldset><legend>Add members</legend>
+        {% for user in users %}
+        <label class="checkbox"><input type="checkbox" name="member_ids" value="{{ user['id'] }}" {% if user['id'] == current_user['id'] %}checked disabled{% endif %}> {{ user['display_name'] }}</label>
+        {% endfor %}
+      </fieldset>
+      <button type="submit">Create group</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

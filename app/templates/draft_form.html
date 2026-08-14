@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Draft from text · SplitLedger{% endblock %}
+{% block content %}
+<section class="form-page"><a class="back-link" href="/groups/{{ group['id'] }}">← Back to {{ group['name'] }}</a><div class="panel form-panel">
+  <p class="eyebrow">TEXT DRAFT · {{ parser_mode|upper }} MODE</p><h1>Type it the way you would naturally.</h1>
+  <p class="muted">Short, hurried, lowercase, and phone-style input is fine. The parser suggests fields only; you review and confirm before anything is saved.</p>
+  {% if error %}<p class="alert">{{ error }}</p>{% endif %}
+  <form action="/groups/{{ group['id'] }}/expense-drafts" method="post" class="stack">
+    <label>Expense statement<textarea name="raw_input" rows="5" maxlength="400" required autocapitalize="sentences" placeholder="paid 450 cab w asha n rohan">{{ raw_input or '' }}</textarea></label>
+    {% if parser_mode == 'gemini' %}
+    <p class="caption">Examples: <code>paid 450 cab w asha n rohan</code> · <code>yday dinner 1240, asha paid, split me rohan asha</code>. If a detail is unclear, Gemini will ask instead of guessing.</p>
+    {% else %}
+    <p class="caption">Mock mode uses this exact demo grammar: <code>&lt;payer&gt; paid ₹&lt;amount&gt; for &lt;description&gt;; split equally among &lt;members&gt;</code>.</p>
+    {% endif %}
+    <button type="submit">Create editable draft</button>
+  </form>
+</div></section>
+{% endblock %}
