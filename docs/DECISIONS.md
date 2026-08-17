@@ -17,6 +17,7 @@ Each entry records the problem, alternatives, chosen tradeoff, and supporting ev
 | D-011 | Expense date boundary | Past or present dates only | SplitLedger records expenses that already happened, not scheduled payments. HTML date limits improve usability, while shared backend validation prevents bypasses and rejects future Gemini output. |
 | D-012 | Amount input boundary | Ordinary decimal INR from ₹0.01 to ₹10,000,000.00 | A one-crore ceiling is far above the student/travel use case while remaining safely inside the relational integer capacity. Strict syntax rejects non-finite values, scientific notation, and excessively long input before persistence. |
 | D-013 | Deployment persistence | SQLite locally; PostgreSQL through `DATABASE_URL` on Vercel | SQLite keeps local setup simple, but a serverless filesystem cannot persist a shared ledger. The repository retains explicit SQL while a small driver boundary translates placeholders and backend-specific schema/aggregation. |
+| D-014 | Hurried-input interpretation | Explicit shorthand conventions before clarification | Subjectless `paid/spent`, omitted dates on completed expenses, `w/n`, and `split all N` have deterministic app-level meanings. Gemini may apply only those documented rules and must clarify remaining ambiguity; this improves phone input without allowing invented people, amounts, or conflicting split rules. |
 
 ## Name selection framework
 

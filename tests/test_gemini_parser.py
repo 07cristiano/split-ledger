@@ -57,6 +57,9 @@ async def test_gemini_parser_turns_hurried_mobile_text_into_a_safe_draft() -> No
     prompt = captured["body"]["contents"][0]["parts"][0]["text"]
     assert "signed-in user is Meera" in prompt
     assert "only valid group members are: Asha, Rohan, Meera" in prompt
+    assert 'subjectless "paid" or "spent" means Meera paid' in prompt
+    assert '"split all N" means an equal split' in prompt
+    assert "with A and B" in prompt
 
 
 @pytest.mark.anyio

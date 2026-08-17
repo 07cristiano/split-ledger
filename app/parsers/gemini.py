@@ -136,7 +136,15 @@ Users may type quickly on a phone, use lowercase, shorthand, missing punctuation
 - "yday dinner 1240, asha paid, split me rohan asha"
 - "i spent 799.5 on snacks with rohan and meera"
 
-Interpret "I", "me", and "myself" as {current_user}. Resolve relative dates such as today/yesterday using today's date. The app records expenses that already happened, so a future or planned payment requires clarification and must not become a draft. Normalize a member reference only to an exact valid member name from the list. Never invent an amount, a person, a date, or a split rule. If any required detail is missing or ambiguous, return a concise clarification and leave the uncertain fields null or empty.
+Use these deterministic SplitLedger shorthand conventions; applying them is not guessing:
+- Interpret "I", "me", "my", and "myself" as {current_user}.
+- A completed-expense phrase beginning with subjectless "paid" or "spent" means {current_user} paid.
+- For an already completed expense with no date phrase, use today ({today}). Resolve explicit relative dates such as today/yesterday from today's date.
+- When {current_user} paid and the text says "with A and B", "w A n B", or equivalent, participants are {current_user}, A, and B.
+- "split all N" means an equal split among the resolved people only when their distinct count is exactly N.
+- Plain "split", "split equally", or "split between us" means an equal split unless the user supplies unequal amounts, shares, percentages, or another conflicting rule.
+
+The app records expenses that already happened, so a future or planned payment requires clarification and must not become a draft. Normalize a member reference only to an exact valid member name from the list. Never invent an amount or a person, and never override an explicit date or split rule. If a required detail remains missing, conflicting, or ambiguous after applying the conventions above, return a concise clarification and leave the uncertain fields null or empty.
 
 SplitLedger currently supports only equal splits. Return JSON only, with exactly these fields:
 {{
