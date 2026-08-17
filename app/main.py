@@ -12,7 +12,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import load_local_env
-from app.db import initialize_database
+from app.db import initialize_database, is_postgres_database
 from app.parsers.gemini import GeminiParserAdapter
 from app.parsers.mock import DraftParseError, MockParserAdapter
 from app.repositories import (
@@ -49,16 +49,29 @@ def environment_flag(name: str, default: bool) -> bool:
     return raw_value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def is_production_environment() -> bool:
+    """Recognize explicit production settings and Vercel runtime environments."""
+    app_environment = os.getenv("APP_ENV", "").strip().lower()
+    vercel_environment = os.getenv("VERCEL_ENV", "").strip().lower()
+    return (
+        app_environment == "production"
+        or os.getenv("VERCEL") == "1"
+        or vercel_environment in {"production", "preview"}
+    )
+
+
 def resolve_database_target(db_path: str | Path | None = None) -> str | Path:
     """Use an explicit test path, persistent DATABASE_URL, or local SQLite in that order."""
     if db_path is not None:
         return db_path
     database_url = os.getenv("DATABASE_URL", "").strip()
     if database_url:
+        if is_production_environment() and not is_postgres_database(database_url):
+            raise RuntimeError("DATABASE_URL must be a PostgreSQL URL in production.")
         return database_url
-    if os.getenv("VERCEL") == "1":
+    if is_production_environment():
         raise RuntimeError(
-            "DATABASE_URL is required on Vercel because the serverless filesystem cannot persist SQLite."
+            "DATABASE_URL is required in production because the serverless filesystem cannot persist SQLite."
         )
     return Path(os.getenv("SPLITLEDGER_DB_PATH", DEFAULT_DB_PATH))
 
@@ -68,7 +81,7 @@ def create_app(
     seed: bool = True,
     parser_mode: str | None = None,
 ) -> FastAPI:
-    production_mode = os.getenv("VERCEL") == "1" or os.getenv("APP_ENV", "").lower() == "production"
+    production_mode = is_production_environment()
     session_secret = os.getenv("SESSION_SECRET", "").strip()
     if production_mode and session_secret in {
         "",

@@ -17,6 +17,7 @@ Do not point Vercel at `/tmp/splitledger.db` for a portfolio demo that promises 
 
 - `api/index.py` exports the FastAPI ASGI application.
 - `vercel.json` routes requests to the Python serverless function.
+- `.python-version` pins the deployment runtime to Python 3.12.
 - `app/db.py` selects SQLite or PostgreSQL and creates the matching schema.
 - `psycopg[binary]` is the PostgreSQL driver.
 
@@ -67,8 +68,13 @@ The schema uses `CREATE TABLE/INDEX IF NOT EXISTS`, and demo seeding is guarded 
 On Vercel, startup intentionally fails with a clear log message when:
 
 - `DATABASE_URL` is absent, because falling back to SQLite would be unreliable.
+- `DATABASE_URL` does not use a `postgresql://` or `postgres://` URL in production.
 - `SESSION_SECRET` is absent or still uses the development fallback.
 - PostgreSQL is selected but the driver is unavailable.
+
+Production mode is recognized through the explicit `APP_ENV=production` setting
+or Vercel's `VERCEL`/`VERCEL_ENV` runtime variables. Any one of these production
+signals disables the local SQLite fallback.
 
 ## Troubleshooting order
 

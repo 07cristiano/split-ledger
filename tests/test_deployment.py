@@ -10,7 +10,7 @@ from app.db import (
     insert_and_get_id,
     is_postgres_database,
 )
-from app.main import create_app, resolve_database_target
+from app.main import create_app, is_production_environment, resolve_database_target
 
 
 class FakeCursor:
@@ -64,7 +64,35 @@ def test_vercel_fails_with_actionable_error_without_persistent_database(
 ) -> None:
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.setenv("VERCEL", "1")
-    with pytest.raises(RuntimeError, match="DATABASE_URL is required on Vercel"):
+    with pytest.raises(RuntimeError, match="DATABASE_URL is required in production"):
+        resolve_database_target()
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [("APP_ENV", "production"), ("VERCEL_ENV", "production"), ("VERCEL_ENV", "preview")],
+)
+def test_every_production_environment_requires_persistent_database(
+    monkeypatch: pytest.MonkeyPatch,
+    name: str,
+    value: str,
+) -> None:
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("APP_ENV", raising=False)
+    monkeypatch.delenv("VERCEL", raising=False)
+    monkeypatch.delenv("VERCEL_ENV", raising=False)
+    monkeypatch.setenv(name, value)
+
+    assert is_production_environment()
+    with pytest.raises(RuntimeError, match="DATABASE_URL is required in production"):
+        resolve_database_target()
+
+
+def test_production_rejects_non_postgres_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("DATABASE_URL", "sqlite:////tmp/splitledger.db")
+
+    with pytest.raises(RuntimeError, match="must be a PostgreSQL URL"):
         resolve_database_target()
 
 
@@ -123,6 +151,7 @@ def test_vercel_entrypoint_and_configuration_are_present() -> None:
     from api.index import app
 
     assert app.title == "SplitLedger"
+    assert Path(".python-version").read_text(encoding="utf-8").strip() == "3.12"
     configuration = json.loads(Path("vercel.json").read_text(encoding="utf-8"))
     assert configuration["builds"][0]["src"] == "api/index.py"
     assert configuration["routes"][0]["dest"] == "api/index.py"
